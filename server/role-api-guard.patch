@@ -1,0 +1,5 @@
+--- a/app/Http/Controllers/Api/Application/Roles/RoleController.php
++++ b/app/Http/Controllers/Api/Application/Roles/RoleController.php
+@@
+-        $role = Role::create($request->validated());
++        $role = Role::create([...$request->validated(), 'guard_name' => Role::DEFAULT_GUARD_NAME]);
