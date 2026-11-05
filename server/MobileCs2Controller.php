@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Kripusek\CS2MatchControl\Services\MatchSettingsService as M;
 use Kripusek\CS2MatchControl\Services\WorkshopService as W;
+use Kripusek\CS2MatchControl\Services\MapCompatibility;
 use Kripusek\CS2ACControl\Services\CS2ACConfigService as A;
 use Kripusek\CS2FOWControl\Services\CS2FOWConfigService as F;
 use Kripusek\MatchZyControl\Services\MatchZyConfigService as Z;
@@ -55,6 +56,7 @@ class MobileCs2Controller {
   if($r->user()->can(P::StartupRead,$server))$out['settings']=app(M::class)->read($server);
   if($r->user()->can(P::FileRead,$server)) {
    $out['maps']=array_values(app(M::class)->nativeMaps($server));
+   $out['mapsByPreset']['wingman']=array_values(MapCompatibility::nativeMaps(array_combine($out['maps'],$out['maps']),'wingman'));
    if($r->user()->can(P::FileReadContent,$server))$out['workshop']=array_values(app(W::class)->library($server));
    $out['installed']=app(W::class)->installedIds($server);
   }

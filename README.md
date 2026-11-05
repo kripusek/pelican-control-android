@@ -1,4 +1,4 @@
-# Pelican Control 2.0.2 — natywny Android
+# Pelican Control 2.1.0 — natywny Android
 
 Aplikacja Kotlin / Jetpack Compose na Androida 10+. Brak WebView i ekranów HTML. Adres panelu podaje użytkownik w zakładce Konto; https://panel.example.com to wyłącznie przykład.
 
@@ -19,6 +19,8 @@ Podpisany APK jest dostępny w zakładce **Releases** tego repozytorium.
 - harmonogramy, zadania, porty, dostęp użytkowników, bazy danych, zmienne startowe i aktywność;
 - CS2: ustawienia mapy i trybu, zapis startowy, zastosowanie teraz, Workshop, MatchZy, CS2AC, CS2FOW.
 
+Wybranie trybu Wingman ogranicza listę do zainstalowanych map obsługujących Wingmana i usuwa niezgodny poprzedni wybór. Powrót do pozostałych trybów przywraca pełną listę. Mapy Workshop wymagają oznaczenia Wingman lub 2v2 w metadanych Steam. API sprawdza zgodność przed zapisem lub zmianą mapy.
+
 ## Administracja
 
 Natywne listy, szczegóły i formularze dla serwerów, użytkowników, węzłów, portów, dodatków, eggs, ról, hostów baz i montowań. Obsługa tworzenia/edycji/usuwania tam, gdzie udostępnia ją API Pelicana; limity, zawieszanie, reinstalacja i transfery serwerów. Edytor uprawnień ról oraz podstawowe ustawienia ogólne panelu korzystają z dodatkowych endpointów serwerowych. Część zaawansowanych struktur API (np. środowisko egga, listy ID) ma natywny edytor JSON.
@@ -31,6 +33,10 @@ Pliki w `server/` są wdrożone w `/var/www/pelican/plugins/cs2-match-control/sr
 
 - `MobileApiProvider.php` → `Providers/`;
 - `MobileCs2Controller.php`, `MobileAdminController.php` → `Http/`.
+- pliki z `server/Services/` → `Services/`;
+- `server/Pages/MatchSettingsPage.php` → `Filament/Server/Pages/`.
+
+Te pliki aktualizują istniejący dodatek `cs2-match-control`, który wymaga usług pozostałych dodatków MatchZy/CS2AC/CS2FOW. Nie kopiuj do repozytorium konfiguracji serwera ani kluczy dostępowych. Zgodność natywnych map Wingman opisuje `MapCompatibility::WINGMAN_MAPS`, według szablonu `2v2` w pliku gry `gamemodes.txt`. Po zmianie puli map przez Valve należy zaktualizować katalog. Mapy z biblioteki Workshop dodane przed tą wersją należy ponownie dodać tym samym ID, aby odświeżyć ich oznaczenia trybu.
 
 Pelican automatycznie ładuje provider dodatku. Endpointy pod `/api/client/servers/{uuid}/mobile-cs2` korzystają z autoryzacji klienta i uprawnień konkretnego serwera. `/api/application/mobile-control` obsługuje role i podstawowe ustawienia administracyjne. Integracja korzysta z istniejących usług dodatków MatchZy/AC/FOW/Workshop; standardowe ekrany panelu pozostają dostępne w Pelicanie.
 
@@ -50,7 +56,7 @@ Workflow GitHub Actions uruchamia kompilację debug, testy jednostkowe i lint. T
 
 ## Weryfikacja
 
-- kompilacja debug/release, lint, 5 testów jednostkowych;
+- kompilacja debug/release, lint, testy jednostkowe formularzy, API i filtrowania map;
 - emulator: nawigacja, Keystore, rzeczywiste ekrany serwera, plików, CS2 i administracji;
 - prawdziwe API: 8 list klienta i 8 list administracyjnych, zasoby, WSS i logi;
 - rzeczywisty zapis/odczyt/usunięcie nowego pliku QA, CRUD tymczasowej roli, CRUD nieaktywnego harmonogramu;
@@ -58,3 +64,5 @@ Workflow GitHub Actions uruchamia kompilację debug, testy jednostkowe i lint. T
 - gość 401, obce konto 404, ograniczony użytkownik 403 przy próbach zapisu ustawień, konfiguracji ochrony, Workshop i komend, administracja dla zwykłego użytkownika 403.
 
 Nie wykonywano testowych restartów ani zmian bieżącej mapy. Destrukcyjne operacje mają potwierdzenie i nie były testowane na działających zasobach. Tymczasowe dane testowe i klucze są usuwane po testach.
+
+Samodzielny test reguł backendu: `php server/tests/MapCompatibilityTest.php`.

@@ -37,15 +37,26 @@ import org.json.JSONObject
   };return
  }
  if(section=="settings"){
-  val state=data?.optJSONObject("settings");val settingsFields=listOf(Field("source","Źródło mapy","select",state?.optString("source")?:"native",mapOf("native" to "Mapa Valve","workshop" to "Steam Workshop")),Field("nativeMap","Mapa Valve","select",state?.optString("nativeMap")?:"de_nuke",data?.optJSONArray("maps")?.strings()?.associateWith{it}?:emptyMap()),Field("workshopMap","Mapa Workshop","select",state?.optString("workshopMap")?:"",data?.objects("workshop")?.associate{it.getString("id") to it.getString("title")}?:emptyMap()),Field("preset","Tryb gry","select",state?.optString("preset")?:"competitive",data?.optJSONObject("presets")?.let{p->p.keys().asSequence().associateWith{p.getString(it)}}?:emptyMap()))
-  var values by remember(data){mutableStateOf(formValues(settingsFields))}
+  val catalog=data?:JSONObject()
+  var values by remember(data){mutableStateOf(MatchMapRules.normalize(catalog,catalog.optJSONObject("settings")?:JSONObject().put("source","native").put("preset","competitive")))}
+  val preset=values.optString("preset","competitive")
+  val native=MatchMapRules.nativeMaps(catalog,preset);val workshop=MatchMapRules.workshopMaps(catalog,preset)
+  val settingsFields=listOf(
+   Field("preset","Tryb gry","select",options=catalog.optJSONObject("presets")?.let{p->p.keys().asSequence().associateWith{p.getString(it)}}?:emptyMap()),
+   Field("source","Źródło mapy","select",options=mapOf("native" to "Mapa Valve","workshop" to "Steam Workshop")),
+   Field("nativeMap","Mapa Valve","select",options=native.associateWith{it}),
+   Field("workshopMap","Mapa Workshop","select",options=workshop.associate{it.getString("id") to it.getString("title")})
+  )
+  val selectionValid=values.optString("nativeMap") in native && (values.optString("source")=="native"||workshop.any{it.getString("id")==values.optString("workshopMap")})
   Page("Ustawienia meczu","Mapa, tryb i ustawienia po uruchomieniu",back={section="home"}){
    if(result.isNotBlank())ResultBanner(result);if(error.isNotBlank())ErrorCard(error)
-   FormFields(settingsFields.filter{it.key!="workshopMap"||values.optString("source")=="workshop"},values){values=it}
+   FormFields(settingsFields.filter{it.key!="workshopMap"||values.optString("source")=="workshop"},values){values=MatchMapRules.normalize(catalog,it)}
+   if(preset=="wingman")Info("Dostępne są tylko mapy Wingman. Mapy Workshop muszą mieć oznaczenie Wingman w Steam.")
+   if(!selectionValid&&!busy)Info("Brak zgodnej mapy dla wybranego źródła. Wybierz inne źródło lub dodaj mapę do biblioteki.")
    Info("Zapis dotyczy kolejnego uruchomienia. Zastosowanie teraz przełączy mapę i zakończy bieżący mecz.")
    if(canSave&&can("startup.update")){
-    Button(onClick={op=Operation("Zapisz ustawienia startowe","$path/settings",body=JSONObject(values.toString()).put("apply",false))},modifier=Modifier.fillMaxWidth()){Text("Zapisz na następne uruchomienie")}
-    OutlinedButton(onClick={op=Operation("Zastosuj teraz","$path/settings",body=JSONObject(values.toString()).put("apply",true),confirmation="Zakończy bieżący mecz, zmieni tryb i przełączy mapę. Gracze zostaną przeniesieni na wybraną mapę.")},modifier=Modifier.fillMaxWidth()){Text("Zastosuj teraz i zmień mapę")}
+    Button(enabled=selectionValid&&!busy,onClick={op=Operation("Zapisz ustawienia startowe","$path/settings",body=JSONObject(values.toString()).put("apply",false))},modifier=Modifier.fillMaxWidth()){Text("Zapisz na następne uruchomienie")}
+    OutlinedButton(enabled=selectionValid&&!busy,onClick={op=Operation("Zastosuj teraz","$path/settings",body=JSONObject(values.toString()).put("apply",true),confirmation="Zakończy bieżący mecz, zmieni tryb i przełączy mapę. Gracze zostaną przeniesieni na wybraną mapę.")},modifier=Modifier.fillMaxWidth()){Text("Zastosuj teraz i zmień mapę")}
    }
   };return
  }

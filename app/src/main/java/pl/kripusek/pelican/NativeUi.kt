@@ -15,6 +15,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -67,7 +68,7 @@ fun serializeForm(fields:List<Field>,values:JSONObject):JSONObject=JSONObject().
 }
 @Composable fun Picker(label:String,value:String,options:Map<String,String>,onChange:(String)->Unit){
  var expanded by remember{mutableStateOf(false)}
- Box{OutlinedButton(onClick={expanded=true},modifier=Modifier.fillMaxWidth()){Column(Modifier.weight(1f)){Text(label,fontSize=12.sp,color=Mint);Text(options[value]?:value.ifBlank{"Wybierz"})};Icon(Icons.Outlined.ExpandMore,null)}
+ Box{OutlinedButton(onClick={expanded=true},modifier=Modifier.fillMaxWidth().testTag("picker:$label")){Column(Modifier.weight(1f)){Text(label,fontSize=12.sp,color=Mint);Text(options[value]?:value.ifBlank{"Wybierz"})};Icon(Icons.Outlined.ExpandMore,null)}
   DropdownMenu(expanded,onDismissRequest={expanded=false}){options.forEach{(k,v)->DropdownMenuItem(text={Text(v)},onClick={expanded=false;onChange(k)})}}
  }
 }
@@ -127,7 +128,7 @@ fun serializeForm(fields:List<Field>,values:JSONObject):JSONObject=JSONObject().
  var account by remember{mutableStateOf<JSONObject?>(null)};var error by remember{mutableStateOf("")};var success by remember{mutableStateOf("")};var busy by remember{mutableStateOf(false)}
  val scope=rememberCoroutineScope()
  LaunchedEffect(api){account=null;if(config.token.isNotBlank())runCatching{api.json("/account").attrs()}.onSuccess{account=it}.onFailure{error=it.message.orEmpty()}}
- Page("Konto i połączenie","Pelican Control 2.0.2"){
+ Page("Konto i połączenie","Pelican Control 2.1.0"){
   account?.let{Hero(it.optString("username"),it.optString("email")){Text(if(it.optBoolean("root_admin"))"Administrator Pelicana" else "Konto użytkownika",color=Mint)}}
   OutlinedTextField(url,{url=it},label={Text("Adres panelu HTTPS")},singleLine=true,modifier=Modifier.fillMaxWidth())
   OutlinedTextField(token,{token=it},label={Text("Klucz API klienta")},singleLine=true,visualTransformation=PasswordVisualTransformation(),modifier=Modifier.fillMaxWidth())

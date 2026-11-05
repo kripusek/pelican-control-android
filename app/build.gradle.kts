@@ -4,7 +4,7 @@ val signing=Properties().apply { val file=rootProject.file(".local/signing.prope
 android {
  namespace="pl.kripusek.pelican"
  compileSdk=36
- defaultConfig { applicationId="pl.kripusek.pelican"; minSdk=29; targetSdk=36; versionCode=4; versionName="2.0.2"; testInstrumentationRunner="androidx.test.runner.AndroidJUnitRunner" }
+ defaultConfig { applicationId="pl.kripusek.pelican"; minSdk=29; targetSdk=36; versionCode=5; versionName="2.1.0"; testInstrumentationRunner="androidx.test.runner.AndroidJUnitRunner" }
  buildFeatures { compose=true }
  compileOptions { sourceCompatibility=JavaVersion.VERSION_21; targetCompatibility=JavaVersion.VERSION_21 }
  signingConfigs { if(signing.isNotEmpty()) create("localRelease") { storeFile=rootProject.file(".local/release.jks"); storePassword=signing.getProperty("password"); keyAlias="pelican"; keyPassword=signing.getProperty("password") } }
